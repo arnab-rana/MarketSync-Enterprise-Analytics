@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketSync Analytics | Enterprise</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase V8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- PapaParse for Local & Cloud CSV Reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  
+  <!-- Google Charts API for Heatmap -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body class="bg-[#0b1120] text-slate-300 font-sans min-h-screen flex selection:bg-indigo-500 selection:text-white">
+  
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 bg-[#0f172a] border-r border-slate-800 flex flex-col hidden md:flex">
+    <div class="p-6 border-b border-slate-800">
+      <h1 class="text-2xl font-black text-indigo-400 tracking-tighter">Market<span class="text-slate-100">Sync</span></h1>
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Enterprise Analytics</p>
+    </div>
+    
+    <!-- Sidebar Links -->
+    <nav class="flex-1 p-4 space-y-2" id="sidebar-nav">
+      <button data-target="view-dashboard" class="nav-btn w-full text-left px-4 py-3 bg-indigo-900/30 text-indigo-300 rounded-lg border border-indigo-700/50 text-sm font-medium transition">📊 Core Dashboard</button>
+      <button data-target="view-demand" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">🛒 Demand Forecasting</button>
+      <button data-target="view-campaign" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">📈 Campaign ROI</button>
+      <button data-target="view-integrations" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">⚙️ Integrations</button>
+      <button data-target="view-sustainability" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">🌍 ESG & Carbon Tracker</button>
+      <button data-target="view-bogo" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">🏪 Shelf-Life & BOGO</button>
+      <button data-target="view-genai" class="nav-btn w-full text-left px-4 py-3 hover:bg-slate-800 text-slate-400 rounded-lg text-sm font-medium transition">🤖 Gen-AI Ad Creator</button>
+    </nav>
+    
+    <div class="p-4 border-t border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">A</div>
+        <div class="text-xs">
+          <p class="text-slate-200 font-medium">Arnab Rana</p>
+          <p class="text-slate-500">Marketing Head</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+    
+    <!-- ==================== VIEW 1: CORE DASHBOARD ==================== -->
+    <section id="view-dashboard" class="content-section block">
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 pb-4 border-b border-slate-800/50 gap-4">
+        <div>
+          <h2 class="text-3xl font-semibold text-slate-100">Live Campaign Intelligence</h2>
+          <p class="text-sm text-slate-500 mt-1">Automated Social Listening & Supply Optimization</p>
+        </div>
+        
+        <!-- HYBRID CLOUD SYNC ZONE -->
+        <div class="bg-[#1e293b]/80 border border-slate-700/50 rounded-xl p-4 w-full md:w-96 shadow-lg">
+            <p class="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wider">Cloud Data Sync</p>
+            <div class="flex gap-2">
+                <input type="text" id="sheet-url-input" placeholder="🔗 Paste Google Sheets link here..." class="flex-1 bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 transition shadow-inner">
+                <button id="sync-url-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-md">Sync</button>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Must be "Anyone with link can view"</span>
+                <label for="csv-upload" class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-medium transition">Or upload local CSV</label>
+                <input type="file" id="csv-upload" accept=".csv" class="hidden" />
+            </div>
+        </div>
+      </header>
+
+      <!-- Top Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-[#1e293b]/50 border border-slate-700/50 p-4 rounded-xl">
+          <p class="text-xs text-slate-400">Total Brand Mentions</p>
+          <p id="total-mentions" class="text-2xl font-bold text-slate-100 mt-1">14,208 <span class="text-xs text-green-400">↑ 12%</span></p>
+        </div>
+        <div class="bg-[#1e293b]/50 border border-slate-700/50 p-4 rounded-xl">
+          <p class="text-xs text-slate-400">Projected Churn Rate</p>
+          <p id="churn-metric" class="text-2xl font-bold text-amber-400 mt-1">4.1%</p>
+        </div>
+        <div class="bg-[#1e293b]/50 border border-slate-700/50 p-4 rounded-xl">
+          <p class="text-xs text-slate-400">Competitor Share of Voice</p>
+          <p class="text-2xl font-bold text-slate-100 mt-1">32.4% <span class="text-xs text-red-400">↓ 1.2%</span></p>
+        </div>
+        <div class="bg-[#1e293b]/50 border border-slate-700/50 p-4 rounded-xl">
+          <p class="text-xs text-slate-400">Active Spend Rate</p>
+          <p class="text-2xl font-bold text-slate-100 mt-1">₹125k/day</p>
+        </div>
+      </div>
+
+      <!-- Logic Modules -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6">
+          <h3 class="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Social Listening Output</h3>
+          <div id="ai-status" class="h-40 flex justify-center items-center text-center border border-dashed border-slate-700 rounded-xl bg-slate-900/50 text-slate-500 text-sm">Awaiting Market Sync...</div>
+        </div>
+        <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6">
+          <h3 class="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Automated Actions</h3>
+          <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 mb-4">
+            <p class="text-xs text-slate-400 uppercase tracking-wider">Supply Chain Routing</p>
+            <p id="supply-status" class="text-slate-300 mt-1">Normal Flow</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+            <p class="text-xs text-slate-400 uppercase tracking-wider">Campaign Budget Adjustment</p>
+            <p id="roi-status" class="text-slate-300 mt-1">Optimized for Max Reach</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: DEMAND FORECASTING ==================== -->
+    <section id="view-demand" class="content-section hidden">
+      <header class="mb-8 pb-4 border-b border-slate-800/50">
+        <h2 class="text-3xl font-semibold text-slate-100">Demand Forecasting Engine</h2>
+        <p class="text-sm text-slate-500 mt-1">AI-Powered Predictive Inventory Heatmap for Indian FMCG Markets</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="col-span-2 bg-[#0f172a] border border-slate-800 rounded-2xl p-6 relative shadow-xl flex flex-col">
+          <h3 class="text-slate-300 mb-4 font-medium flex items-center gap-2"><span class="text-indigo-400">📍</span> Live India Inventory Heatmap</h3>
+          <div id="india_heatmap" class="w-full flex-1 min-h-[350px] rounded-xl overflow-hidden flex justify-center items-center"></div>
+          <div class="flex justify-center gap-6 text-xs text-slate-400 mt-4 border-t border-slate-800 pt-4">
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-sm"></span> Critical (Out of Stock)</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-amber-500 rounded-sm"></span> Warning (High Demand)</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-sm"></span> Optimal Flow</span>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-xl">
+           <h3 class="text-slate-300 mb-4 font-medium flex items-center gap-2"><span class="text-amber-400">⚡</span> AI Recommendations</h3>
+           <div class="space-y-4">
+             <div class="p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl">
+               <p class="text-[10px] uppercase tracking-wider text-slate-400">Priority Action (Red Zones)</p>
+               <p class="text-sm text-slate-200 mt-1 mb-3">Reroute 25,000 units from Maharashtra/Gujarat to Delhi & UP fulfillment centers immediately.</p>
+               <button class="w-full bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-xs font-semibold py-2 rounded-lg transition-all">Execute Transfer</button>
+             </div>
+             <div class="p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl">
+               <p class="text-[10px] uppercase tracking-wider text-slate-400">Secondary Action (Amber Zones)</p>
+               <p class="text-sm text-slate-200 mt-1 mb-3">Increase production buffer for West Bengal & Odisha operations by 15%.</p>
+               <button class="w-full bg-slate-700/50 text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-600 text-xs font-semibold py-2 rounded-lg transition-all">Alert Manufacturing</button>
+             </div>
+           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: CAMPAIGN ROI ==================== -->
+    <section id="view-campaign" class="content-section hidden">
+      <header class="mb-8 pb-4 border-b border-slate-800/50">
+        <h2 class="text-3xl font-semibold text-slate-100">Campaign Profitability</h2>
+        <p class="text-sm text-slate-500 mt-1">Track Ad Spend vs Realized Revenue</p>
+      </header>
+      <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 text-center">
+        <p class="text-slate-400 text-sm">Current ROAS (Return on Ad Spend)</p>
+        <p class="text-5xl font-bold text-indigo-400 mt-4">2.4x</p>
+        <p class="text-emerald-400 text-xs mt-2">+0.4% from last quarter</p>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: INTEGRATIONS ==================== -->
+    <section id="view-integrations" class="content-section hidden">
+      <header class="mb-8 pb-4 border-b border-slate-800/50">
+        <h2 class="text-3xl font-semibold text-slate-100">Data Integrations</h2>
+        <p class="text-sm text-slate-500 mt-1">Connect MarketSync with external pipelines</p>
+      </header>
+      <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6">
+        <button class="bg-slate-800 border border-slate-600 px-4 py-2 rounded text-slate-300 w-full mb-4 text-left flex justify-between">
+          <span>🔗 Google Firebase (Active)</span> <span class="text-emerald-400">Connected</span>
+        </button>
+        <button class="bg-slate-800 border border-slate-600 px-4 py-2 rounded text-slate-300 w-full text-left flex justify-between opacity-50 cursor-not-allowed">
+          <span>📊 Kaggle Data Importer</span> <span class="text-slate-500">Configure</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: SUSTAINABILITY ==================== -->
+    <section id="view-sustainability" class="content-section hidden">
+      <header class="mb-8 pb-4 border-b border-slate-800/50">
+        <h2 class="text-3xl font-semibold text-slate-100">Carbon Footprint & ESG Tracker</h2>
+        <p class="text-sm text-slate-500 mt-1">Live Supply Chain Emission Monitoring & Eco-Routing Optimizer</p>
+      </header>
+
+      <!-- ESG Top Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Total CO2 Emissions (YTD)</p>
+          <p class="text-3xl font-bold text-slate-100 mt-2">1,240 <span class="text-lg font-normal text-slate-400">Tons</span></p>
+          <p class="text-xs text-emerald-400 mt-2">↓ 8.4% vs Last Quarter</p>
+        </div>
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Eco-Routed Shipments</p>
+          <p class="text-3xl font-bold text-emerald-400 mt-2">68%</p>
+          <div class="w-full bg-slate-900 h-1.5 rounded-full mt-3"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 68%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">Target: 75% by Q4</p>
+        </div>
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Carbon Tax Saved</p>
+          <p class="text-3xl font-bold text-indigo-400 mt-2">₹1.2M</p>
+          <p class="text-xs text-slate-400 mt-2">Reinvested into Green Fleet</p>
+        </div>
+      </div>
+      <!-- Live Route Emission Analysis -->
+      <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-xl">
+         <h3 class="text-slate-300 mb-6 font-medium flex items-center gap-2">
+           <span class="text-emerald-400">🌱</span> Active Route Emission Analysis
+         </h3>
+         
+         <div class="mb-4 p-5 bg-[#1e293b]/50 rounded-xl border border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+               <p class="text-sm text-slate-200 font-bold flex items-center gap-2">🚚 Maharashtra → Delhi NCR</p>
+               <p class="text-xs text-slate-400 mt-1">Standard Diesel Fleet: 4.2 Tons CO2 projected.</p>
+            </div>
+            <div class="text-left md:text-right">
+               <p class="text-sm text-emerald-400 font-bold">Recommended: Rail/EV Hybrid</p>
+               <p class="text-xs text-slate-400 mt-1">Projected Emission: 1.8 Tons CO2 <span class="text-emerald-400 font-bold">(-57%)</span></p>
+            </div>
+            <button class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-xs font-semibold px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+               Approve Green Route
+            </button>
+         </div>
+
+         <div class="p-5 bg-[#1e293b]/50 rounded-xl border border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+               <p class="text-sm text-slate-200 font-bold flex items-center gap-2">⚡ Karnataka Hub Distribution</p>
+               <p class="text-xs text-slate-400 mt-1">Status: Fully Electric Last-Mile active.</p>
+            </div>
+            <div class="text-left md:text-right">
+               <p class="text-sm text-emerald-400 font-bold">Zero Emission Zone</p>
+               <p class="text-xs text-slate-400 mt-1">100% ESG Compliance Maintained</p>
+            </div>
+            <button class="bg-slate-700 text-slate-400 border border-slate-600 text-xs font-semibold px-4 py-2 rounded-lg cursor-not-allowed whitespace-nowrap">
+               Optimized
+            </button>
+         </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 6: BOGO ==================== -->
+    <section id="view-bogo" class="content-section hidden">
+      <header class="mb-8 pb-4 border-b border-slate-800/50">
+        <h2 class="text-3xl font-semibold text-slate-100">Predictive Shelf-Life Optimizer</h2>
+        <p class="text-sm text-slate-500 mt-1">AI-Driven Expiry Alerts & Automated Clearance (BOGO) Strategies</p>
+      </header>
+
+      <!-- BOGO Top Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg border-l-4 border-l-red-500">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Inventory at Risk (Next 15 Days)</p>
+          <p class="text-3xl font-bold text-slate-100 mt-2">₹4.2M</p>
+          <p class="text-xs text-red-400 mt-2">⚠️ High risk in Dairy & Beverages</p>
+        </div>
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg border-l-4 border-l-indigo-500">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Active BOGO Campaigns</p>
+          <p class="text-3xl font-bold text-indigo-400 mt-2">12</p>
+          <p class="text-xs text-slate-400 mt-2">Running across 4 Regional Hubs</p>
+        </div>
+        <div class="bg-slate-800/40 border border-slate-700/50 p-6 rounded-xl shadow-lg border-l-4 border-l-emerald-500">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Revenue Salvaged (YTD)</p>
+          <p class="text-3xl font-bold text-emerald-400 mt-2">₹18.5M</p>
+          <p class="text-xs text-emerald-400 mt-2">↑ 14% efficiency via AI predictions</p>
+        </div>
+      </div>
+
+      <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-xl">
+         <h3 class="text-slate-300 mb-6 font-medium flex items-center gap-2"><span class="text-amber-400">🚨</span> Critical SKUs Awaiting Action</h3>
+         
+         <div class="mb-4 p-5 bg-[#1e293b]/50 rounded-xl border border-red-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="w-full md:w-1/3">
+               <p class="text-sm text-slate-200 font-bold">Premium Almond Milk (1L)</p>
+               <p class="text-xs text-slate-400 mt-1">SKU: ALM-DL-9021 | Hub: Delhi NCR</p>
+            </div>
+            <div class="w-full md:w-1/3">
+               <p class="text-xs text-slate-400 mb-1">Expiry: <span class="text-red-400 font-bold">12 Days</span></p>
+               <div class="w-full bg-slate-900 h-1.5 rounded-full"><div class="bg-red-500 h-1.5 rounded-full" style="width: 90%"></div></div>
+               <p class="text-[10px] text-slate-500 mt-1">15,000 units unsold</p>
+            </div>
+            <div class="w-full md:w-1/3 text-left md:text-right">
+               <p class="text-xs text-indigo-400 font-bold mb-2">AI Strategy: Buy 1 Get 1 (BOGO)</p>
+               <button class="w-full md:w-auto bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-xs font-semibold px-4 py-2 rounded-lg transition-all">
+                  Deploy Offer to Zepto/Blinkit
+               </button>
+            </div>
+         </div>
+
+         <div class="p-5 bg-[#1e293b]/50 rounded-xl border border-amber-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="w-full md:w-1/3">
+               <p class="text-sm text-slate-200 font-bold">Oats & Honey Bars (Pack of 6)</p>
+               <p class="text-xs text-slate-400 mt-1">SKU: OAT-MH-4432 | Hub: Maharashtra</p>
+            </div>
+            <div class="w-full md:w-1/3">
+               <p class="text-xs text-slate-400 mb-1">Expiry: <span class="text-amber-400 font-bold">28 Days</span></p>
+               <div class="w-full bg-slate-900 h-1.5 rounded-full"><div class="bg-amber-400 h-1.5 rounded-full" style="width: 60%"></div></div>
+               <p class="text-[10px] text-slate-500 mt-1">8,200 units unsold</p>
+            </div>
+            <div class="w-full md:w-1/3 text-left md:text-right">
+               <p class="text-xs text-emerald-400 font-bold mb-2">AI Strategy: Flat 30% Off</p>
+               <button class="w-full md:w-auto bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-xs font-semibold px-4 py-2 rounded-lg transition-all">
+                  Sync to D2C Website
+               </button>
+            </div>
+         </div>
+      </div>
+    </section>
+  </section>
+  <!-- ==================== VIEW 7: GEN-AI DYNAMIC AD CREATOR ==================== -->
+  <section id="view-genai" class="content-section hidden">
+    <header class="mb-8 pb-4 border-b border-slate-800/50">
+      <h2 class="text-3xl font-semibold text-slate-100">Gen-AI Dynamic Ad Creator</h2>
+      <p class="text-sm text-slate-500 mt-1">Automated Campaign Copywriting Based on Real-Time Market Sentiment</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Input & Market Triggers -->
+      <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-xl">
+         <h3 class="text-slate-300 mb-4 font-medium flex items-center gap-2"><span class="text-indigo-400">📊</span> Live Market Triggers</h3>
+         
+         <div class="mb-6 p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl">
+             <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-2">Detected Issue in Data</p>
+             <p class="text-sm text-amber-400 font-bold">"Price point is considered too high for Premium Almond Milk in Tier-2 cities."</p>
+         </div>
+
+         <div class="space-y-3">
+             <label class="text-xs text-slate-400 uppercase tracking-wider">AI Goal Override</label>
+             <!-- ID ADDED HERE -->
+             <select id="ai-goal-select" class="w-full bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-indigo-500">
+                 <option value="value">Push Value Proposition (Quality > Price)</option>
+                 <option value="discount">Generate 20% Discount Campaign</option>
+                 <option value="bogo">Create BOGO Offer Ad Copy</option>
+             </select>
+         </div>
+         
+         <!-- ID ADDED HERE -->
+         <button id="generate-ad-btn" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-lg text-sm font-semibold transition shadow-[0_0_15px_rgba(79,70,229,0.3)] flex justify-center items-center gap-2">
+             <span>✨</span> Generate Ad Campaign
+         </button>
+      </div>
+
+      <!-- AI Output Box -->
+      <div class="bg-[#1e293b]/50 border border-indigo-500/30 rounded-2xl p-6 shadow-xl flex flex-col relative overflow-hidden">
+         <!-- Glowing background effect -->
+         <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+         
+         <h3 class="text-slate-300 mb-4 font-medium flex items-center gap-2"><span class="text-emerald-400">✅</span> AI Generated Campaign</h3>
+         
+         <div class="flex-1 space-y-4">
+             <div>
+                 <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Primary Ad Copy (Facebook/Instagram)</p>
+                 <!-- ID ADDED HERE -->
+                 <div id="ad-copy-output" class="p-4 bg-slate-900/80 border border-slate-700 rounded-lg text-slate-200 text-sm italic">
+                     Waiting for AI prompt...
+                 </div>
+             </div>
+             
+             <div class="grid grid-cols-2 gap-4">
+                 <div class="p-3 bg-slate-900/80 border border-slate-700 rounded-lg">
+                     <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Target Audience</p>
+                     <p class="text-xs text-slate-300 font-bold">Health Enthusiasts, Tier-2, Age 22-45</p>
+                 </div>
+                 <div class="p-3 bg-slate-900/80 border border-slate-700 rounded-lg">
+                     <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Recommended Budget</p>
+                     <p class="text-xs text-emerald-400 font-bold">₹15,000 (Initial 3-Day Test)</p>
+                 </div>
+             </div>
+         </div>
+
+         <div class="mt-6 flex gap-3">
+             <button class="flex-1 bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 text-xs font-semibold py-2.5 rounded-lg transition-all">Regenerate</button>
+             <button class="flex-1 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-xs font-semibold py-2.5 rounded-lg transition-all">Push to Meta Ads</button>
+         </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="./script.js"></script>
+</body>
+</html>
